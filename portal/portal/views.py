@@ -348,7 +348,9 @@ def content_home(request, content_id):
     is_raw = request.GET.get('raw', None) == '1'
     content_id = urlparse(request.path).path[15:]
 
-    if content_id == '':
+    if hasattr(request, 'urlconf') and request.urlconf == 'visualDL.urls':
+        content_id = 'visualdl'
+    elif content_id == '':
         content_id = 'docs'
 
     return _redirect_first_link_in_contents(
@@ -363,16 +365,18 @@ def content_sub_path(request, path=None):
     This is the primary function that renders all static content (.html) pages.
     It builds the context and passes it to the only documentation template rendering template.
     """
-    # content_id, lang, version = url_helper.get_parts_from_url_path(
-    #     request.path)
     is_raw = request.GET.get('raw', None)
     static_content = _get_static_content_from_template(path)
+
+    # Because this is the best metadata we have on if this is VDL or not.
+    is_visualdl = hasattr(
+        request, 'urlconf') and request.urlconf == 'visualDL.urls'
 
     if is_raw and is_raw == '1':
         response = HttpResponse(static_content, content_type="text/html")
         return response
     else:
-        response = render(request, 'content_panel.html', {
+        response = render(request, '%scontent_panel.html' % ('visualdl/' if is_visualdl else ''), {
             'static_content': static_content
         })
         return response
