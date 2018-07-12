@@ -6,6 +6,7 @@ paddle_path=
 book_path=
 models_path=
 mobile_path=
+visualdl_path=
 
 function usage {
     echo "To run the website locally, pass the directories where your content exists"
@@ -30,6 +31,10 @@ while [ "$1" != "" ]; do
         -b | --mobile)
             shift
             mobile_path=$1
+            ;;
+        -v | --visualdl)
+            shift
+            visualdl_path=$1
             ;;
         -h | --help)
             usage
@@ -57,6 +62,11 @@ fi
 if [ "$mobile_path" != "" ]; then
     export MOBILE_PATH=$mobile_path
 fi
+
+if [ "$visualdl_path" != "" ]; then
+    export VISUALDL_PATH=$visualdl_path
+fi
+
 
 export ENV=development
 

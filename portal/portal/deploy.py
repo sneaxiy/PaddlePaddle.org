@@ -55,7 +55,7 @@ def transform(source_dir, destination_dir, content_id, version, lang=None):
             mobile(source_dir, destination_dir, version, lang)
 
         elif content_id == 'visualdl':
-            visualdl(source_dir, destination_dir)
+            visualdl(source_dir, destination_dir, version, lang)
 
     except Exception as e:
         print 'Unable to process documentation: %s' % e
@@ -86,12 +86,7 @@ def documentation(source_dir, destination_dir, content_id, version, original_lan
             destination_dir = url_helper.get_full_content_path(
                 'docs', lang, version)[0]
 
-        generated_dir = '/tmp/%s' % content_id
-        if not os.path.exists(generated_dir):
-            try:
-                os.mkdir(generated_dir)
-            except:
-                generated_dir = tempfile.mkdtemp()
+        generated_dir = _get_new_generated_dir(content_id)
 
         if not new_menu:
             _build_sphinx_index_from_menu(menu_path, lang)
@@ -133,80 +128,8 @@ def documentation(source_dir, destination_dir, content_id, version, original_lan
         else:
             lang_destination_dir = os.path.join(destination_dir, content_id, lang, version)
 
-        # Go through each file, and if it is a .html, extract the .document object
-        #   contents
-        for subdir, dirs, all_files in os.walk(generated_dir):
-            for file in all_files:
-                subpath = os.path.join(subdir, file)[len(
-                    generated_dir):]
-
-                if not subpath.startswith('/.') and not subpath.startswith(
-                    '/_static') and not subpath.startswith('/_doctrees'):
-                    new_path = lang_destination_dir + subpath
-
-                    if '.html' in file or '_images' in subpath or '.txt' in file or '.json' in file:
-                        if not os.path.exists(os.path.dirname(new_path)):
-                            os.makedirs(os.path.dirname(new_path))
-
-                    if '.html' in file:
-                        # Soup the body of the HTML file.
-                        # Check if this HTML was generated from Markdown
-                        original_md_path = get_original_markdown_path(
-                            source_dir, subpath[1:])
-
-                        if original_md_path:
-                            # If this html file was generated from Sphinx MD, we need to regenerate it using python's
-                            # MD library.  Sphinx MD library is limited and doesn't support tables
-                            markdown_file(original_md_path, version, '', new_path)
-
-                            # Since we are ignoring SPHINX's generated HTML for MD files (and generating HTML using
-                            # python's MD library), we must fix any image links that starts with 'src/'.
-                            image_subpath = None
-
-                            parent_paths = subpath.split('/')
-                            image_subpath = ''
-                            for i in range(len(parent_paths)):
-                                image_subpath = image_subpath + '../'
-
-                            # hardcode the sphinx '_images' dir
-                            image_subpath += '_images'
-
-                            with open(new_path) as original_html_file:
-                                soup = BeautifulSoup(original_html_file, 'lxml')
-
-                                image_links = soup.find_all(
-                                    'img', src=re.compile(r'^(?!http).*'))
-
-                                if len(image_links) > 0:
-                                    for image_link in image_links:
-                                        image_file_name = os.path.basename(
-                                            image_link['src'])
-
-                                        if image_subpath:
-                                            image_link['src'] = '%s/%s' % (
-                                                image_subpath, image_file_name)
-                                        else:
-                                            image_link['src'] = '_images/%s' % (
-                                                image_file_name)
-
-                                    with open(new_path, 'w') as new_html_partial:
-                                        new_html_partial.write(soup.encode("utf-8"))
-                        else:
-                            with open(os.path.join(subdir, file)) as original_html_file:
-                                soup = BeautifulSoup(original_html_file, 'lxml')
-
-                            document = None
-                            # Find the .document element.
-                            if version == '0.9.0':
-                                document = soup.select('div.body')[0]
-                            else:
-                                document = soup.select('div.document')[0]
-                            with open(new_path, 'w') as new_html_partial:
-                                new_html_partial.write(document.encode("utf-8"))
-                    elif '_images' in subpath or '.txt' in file or '.json' in file:
-                        # Copy to images directory.
-                        copyfile(os.path.join(subdir, file), new_path)
-
+            strip_sphinx_documentation(
+                source_dir, generated_dir, lang_destination_dir, version)
         # shutil.rmtree(generated_dir)
 
     if new_menu:
@@ -490,25 +413,41 @@ def book(source_dir, destination_dir, version, lang):
     return destination_dir
 
 
-def visualdl(source_dir, destination_dir, options=None):
+def visualdl(source_dir, destination_dir, version, original_lang):
     """
     Given a VisualDL doc directory, invoke a script to generate docs using Sphinx
     and after parsing the code base based on given config, into an output dir.
     """
     # Remove old generated docs directory
-    destination_dir = _get_destination_documentation_dir(destination_dir)
-    if os.path.exists(destination_dir) and os.path.isdir(destination_dir):
-        shutil.rmtree(destination_dir)
-
     if os.path.exists(os.path.dirname(source_dir)):
-        destination_dir = _get_destination_documentation_dir(destination_dir)
-        settings_path = settings.PROJECT_ROOT
-        script_path = settings_path + '/../../scripts/deploy/generate_visualdl_docs.sh'
+        script_path = os.path.join(
+            settings.BASE_DIR, '../scripts/deploy/generate_visualdl_docs.sh')
 
         if os.path.exists(os.path.dirname(script_path)):
-            call([script_path, source_dir, destination_dir])
+            generated_dir = _get_new_generated_dir('visualdl')
 
-            return destination_dir
+            call([script_path, source_dir, generated_dir, original_lang])
+
+            if original_lang:
+                langs = [original_lang]
+            else:
+                langs = ['en', 'zh']
+
+            for lang in langs:
+                if original_lang:
+                    lang_destination_dir = destination_dir
+                else:
+                    lang_destination_dir = os.path.join(
+                        destination_dir, 'visualdl', lang, version)
+
+                strip_sphinx_documentation(
+                    # '/Users/aroravarun/Code/VisualDL',
+                    source_dir, generated_dir,
+                    os.path.join(source_dir,
+                        'visualdl',
+                        lang, version),
+                    lang_destination_dir, version)
+
         else:
             raise Exception('Cannot find script located at %s.' % script_path)
     else:
@@ -516,6 +455,83 @@ def visualdl(source_dir, destination_dir, options=None):
 
 
 ########### End individual content convertors ################
+
+
+def strip_sphinx_documentation(source_dir, generated_dir, lang_destination_dir, version):
+    # Go through each file, and if it is a .html, extract the .document object
+    #   contents
+    for subdir, dirs, all_files in os.walk(generated_dir):
+        for file in all_files:
+            subpath = os.path.join(subdir, file)[len(
+                generated_dir):]
+
+            if not subpath.startswith('/.') and not subpath.startswith(
+                '/_static') and not subpath.startswith('/_doctrees'):
+                new_path = lang_destination_dir + subpath
+
+                if '.html' in file or '_images' in subpath or '.txt' in file or '.json' in file:
+                    if not os.path.exists(os.path.dirname(new_path)):
+                        os.makedirs(os.path.dirname(new_path))
+
+                if '.html' in file:
+                    # Soup the body of the HTML file.
+                    # Check if this HTML was generated from Markdown
+                    original_md_path = get_original_markdown_path(
+                        source_dir, subpath[1:])
+
+                    if original_md_path:
+                        # If this html file was generated from Sphinx MD, we need to regenerate it using python's
+                        # MD library.  Sphinx MD library is limited and doesn't support tables
+                        markdown_file(original_md_path, version, '', new_path)
+
+                        # Since we are ignoring SPHINX's generated HTML for MD files (and generating HTML using
+                        # python's MD library), we must fix any image links that starts with 'src/'.
+                        image_subpath = None
+
+                        parent_paths = subpath.split('/')
+                        image_subpath = ''
+                        for i in range(len(parent_paths)):
+                            image_subpath = image_subpath + '../'
+
+                        # hardcode the sphinx '_images' dir
+                        image_subpath += '_images'
+
+                        with open(new_path) as original_html_file:
+                            soup = BeautifulSoup(original_html_file, 'lxml')
+
+                            image_links = soup.find_all(
+                                'img', src=re.compile(r'^(?!http).*'))
+
+                            if len(image_links) > 0:
+                                for image_link in image_links:
+                                    image_file_name = os.path.basename(
+                                        image_link['src'])
+
+                                    if image_subpath:
+                                        image_link['src'] = '%s/%s' % (
+                                            image_subpath, image_file_name)
+                                    else:
+                                        image_link['src'] = '_images/%s' % (
+                                            image_file_name)
+
+                                with open(new_path, 'w') as new_html_partial:
+                                    new_html_partial.write(soup.encode("utf-8"))
+                    else:
+                        with open(os.path.join(subdir, file)) as original_html_file:
+                            soup = BeautifulSoup(original_html_file, 'lxml')
+
+                        document = None
+                        # Find the .document element.
+                        if version == '0.9.0':
+                            document = soup.select('div.body')[0]
+                        else:
+                            document = soup.select('div.document')[0]
+                        with open(new_path, 'w') as new_html_partial:
+                            new_html_partial.write(document.encode("utf-8"))
+                elif '_images' in subpath or '.txt' in file or '.json' in file:
+                    # Copy to images directory.
+                    copyfile(os.path.join(subdir, file), new_path)
+
 
 def _create_sphinx_menu(parent_list, node, content_id, language, version, source_dir, allow_parent_links=True):
     """
@@ -643,19 +659,6 @@ def get_original_markdown_path(original_documentation_dir, file):
         return None
 
 
-def default(original_documentation_dir, generated_documentation_dir, version, output_dir_name):
-    """
-    Generates and moves generated output from a source directory to an output
-    one, without any transformations or build steps.
-    """
-    destination_documentation_dir = _get_destination_documentation_dir(version, output_dir_name)
-
-    if os.path.exists(destination_documentation_dir):
-        rmtree(destination_documentation_dir)
-
-    copytree(generated_documentation_dir, destination_documentation_dir)
-
-
 def markdown_file(source_markdown_file, version, tmp_dir, new_path=None):
     """
     Given a markdown file path, generate an HTML partial in a directory nested
@@ -720,3 +723,14 @@ def build_apis(source_dir, destination_dir):
             raise Exception('Cannot find script located at %s.' % script_path)
     else:
         raise Exception('Cannot generate documentation, directory %s does not exists.' % source_dir)
+
+
+def _get_new_generated_dir(content_id):
+    generated_dir = '/tmp/%s' % content_id
+    if not os.path.exists(generated_dir):
+        try:
+            os.mkdir(generated_dir)
+        except:
+            generated_dir = tempfile.mkdtemp()
+
+    return generated_dir

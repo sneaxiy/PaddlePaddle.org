@@ -254,3 +254,16 @@ def generate_blog_docs(original_documentation_dir, output_dir_name, options=None
             raise Exception('Cannot find script located at %s.' % script_path)
     else:
         raise Exception('Cannot generate documentation, directory %s does not exists.' % original_documentation_dir)
+
+
+def default(original_documentation_dir, generated_documentation_dir, version, output_dir_name):
+    """
+    Generates and moves generated output from a source directory to an output
+    one, without any transformations or build steps.
+    """
+    destination_documentation_dir = _get_destination_documentation_dir(version, output_dir_name)
+
+    if os.path.exists(destination_documentation_dir):
+        rmtree(destination_documentation_dir)
+
+    copytree(generated_documentation_dir, destination_documentation_dir)

@@ -67,9 +67,5 @@ def get_full_content_path(content_id, lang, version):
     Given content_id, language, and version, return the local path of the
     location of the content.
     """
-    # workspace_path = os.path.join(settings.BASE_DIR, settings.WORKSPACE_DIR)
-    #
-    # if not os.path.exists(workspace_path):
-    #     os.makedirs(workspace_path)
     url_prefix = get_page_url_prefix(content_id, lang, version)
     return '%s/%s' % (settings.PAGES_DIR, url_prefix), url_prefix

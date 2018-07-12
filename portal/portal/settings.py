@@ -91,6 +91,17 @@ SIDE_NAVIGATION = [
     }
 ]
 
+VISUALDL_SIDE_NAVIGATION = [
+    {
+        'title': {
+            'en':'Documentation',
+            'zh': u'\u4f7f\u7528\u6587\u6863'
+        },
+        'path': '/visualdl',
+        'dir': os.environ.get('VISUALDL_PATH', None)
+    },
+]
+
 VERSIONS = [
     { 'name': '0.10.0', 'api': 'v2' },
     { 'name': '0.11.0', 'api': 'Fluid' },

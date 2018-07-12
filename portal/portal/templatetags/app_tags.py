@@ -22,6 +22,7 @@ from portal import url_helper
 
 register = template.Library()
 
+
 @register.simple_tag(takes_context=True)
 def apply_class_if_template(context, template_file_name, class_name):
     '''
@@ -43,7 +44,6 @@ def nav_bar(context):
     Build the navigation based on the current language.
     """
     current_lang_code = context.request.LANGUAGE_CODE
-
     # root_navigation = menu_helper.get_top_level_navigation(
     #     portal_helper.get_preferred_version(context.request),
     #     current_lang_code
@@ -87,8 +87,6 @@ def content_links(context, content_id):
 
     return _common_context(context, {
         'side_nav_content': side_nav_content,
-        'allow_search': context.get('allow_search', False),
-        'allow_version': context.get('allow_version', False),
         'search_url': context.get('search_url', None)
     })
 
@@ -142,3 +140,10 @@ def translation(context, leaf_node):
             result = leaf_node[current_lang_code]
 
     return result
+
+
+# We use this hack because there is no easy way for VDL app's template to be
+# identified by the inclusion tag for nav_bar.
+@register.assignment_tag(takes_context=True)
+def setup_vdl_context(context):
+    return nav_bar(context)

@@ -69,7 +69,6 @@ class Command(BaseCommand):
             content_id, version, None
         )
 
-
         if content_id not in ['models', 'mobile']:
             for lang in ['en', 'zh']:
                 for menu_to_save_content_id in menus_to_save:

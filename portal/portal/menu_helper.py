@@ -79,7 +79,7 @@ def get_production_menu_path(content_id, lang, version):
 
 
 def find_in_top_level_navigation(path):
-    for i in settings.SIDE_NAVIGATION:
+    for i in (settings.VISUALDL_SIDE_NAVIGATION if 'visualdl' in path else settings.SIDE_NAVIGATION):
         if i['path'] == path:
             return i
 
@@ -194,11 +194,15 @@ def get_content_navigation(request, content_id, language, version):
     """
     Get the navigation menu for a particular content service.
     """
-    valid_navigation_items = settings.SIDE_NAVIGATION
-    if version != 'develop':
-        # if the version is NOT 'develop', we only show 'Documentation' and 'API'
-        # otherwise, show all ['Documentation', 'API', 'Book', 'Models', 'Mobile']
-        valid_navigation_items = settings.SIDE_NAVIGATION[:2]
+    if content_id == 'visualdl':
+        valid_navigation_items = settings.VISUALDL_SIDE_NAVIGATION
+
+    else:
+        valid_navigation_items = settings.SIDE_NAVIGATION
+        if version != 'develop':
+            # if the version is NOT 'develop', we only show 'Documentation' and 'API'
+            # otherwise, show all ['Documentation', 'API', 'Book', 'Models', 'Mobile']
+            valid_navigation_items = settings.SIDE_NAVIGATION[:2]
 
     navigation = { 'sections': [] }
     for index, side_navigation_item in enumerate(valid_navigation_items):
