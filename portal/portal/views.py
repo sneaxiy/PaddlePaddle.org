@@ -355,8 +355,8 @@ def content_home(request, content_id):
 
     return _redirect_first_link_in_contents(
         request, content_id,
-        portal_helper.get_preferred_version(request), None,
-        is_raw
+        'develop' if content_id == 'visualdl' else portal_helper.get_preferred_version(request),
+        None, is_raw
     )
 
 
