@@ -26,14 +26,6 @@ then
     export DOCKER_CONTAINER_NAME="develop.paddlepaddle.org"
     export PORT=82
     export ENV=development
-elif [ "$TRAVIS_BRANCH" == "new-contribibutor-experience" ]
-then
-    # Development Deploy
-    echo "Deploying to NEW CONTRIBUTOR EXPERIENCE"
-    export DOCKER_IMAGE_TAG="testing"
-    export DOCKER_CONTAINER_NAME="testing.paddlepaddle.org"
-    export PORT=83
-    export ENV=production
 else
     # All other branches should be ignored
     echo "Cannot deploy image, invalid branch: $TRAVIS_BRANCH"
