@@ -8,8 +8,13 @@ echo $PADDLE_ROOT
 ls $PADDLE_ROOT
 
 echo $TRAVIS_BUILD_DIR
-
+ls -l $TRAVIS_BUILD_DIR
 cd ../../
-export PYTHONPATH=`pwd`/Paddle/build/python
+
+export PYTHONPATH=$PYTHONPATH:`pwd`/Paddle/build/python
 
 echo "Set PYTHONPATH to $PYTHONPATH"
+
+ls -l $PYTHONPATH
+ls -l $PYTHONPATH/paddle
+
