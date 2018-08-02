@@ -12,7 +12,9 @@ ls -l $TRAVIS_BUILD_DIR
 cd ../../
 
 export PYTHONPATH=$PYTHONPATH:`pwd`/Paddle/build/python
+export PYTHONPATH=$PYTHONPATH:$TRAVIS_BUILD_DIR/build/python
 
+echo "-------------------"
 echo "Set PYTHONPATH to $PYTHONPATH"
 
 ls -l $PYTHONPATH
