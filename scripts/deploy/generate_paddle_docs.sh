@@ -17,4 +17,6 @@ echo "Set PYTHONPATH to $PYTHONPATH"
 
 ls -l $PYTHONPATH
 ls -l $PYTHONPATH/paddle
-
+ls -l /paddle
+ls -l /paddle/build
+ls -l /paddle/build/python

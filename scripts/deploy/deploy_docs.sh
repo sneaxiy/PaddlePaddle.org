@@ -9,7 +9,7 @@ echo "Deploy docs: DEC_PASSWD:($1) GITHUB_BRANCH:($2) SOURCE_DIR:($3)"
 
 # Pull PaddlePaddle.org app and run the deploy_documentation command
 if [ $GITHUB_BRANCH == "develop_doc" ]; then
-PPO_BRANCH=develop
+PPO_BRANCH=develop_doc
 else
 PPO_BRANCH=master
 fi
