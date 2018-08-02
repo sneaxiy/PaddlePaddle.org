@@ -8,7 +8,11 @@ SOURCE_DIR=$3
 echo "Deploy docs: DEC_PASSWD:($1) GITHUB_BRANCH:($2) SOURCE_DIR:($3)"
 
 # Pull PaddlePaddle.org app and run the deploy_documentation command
+if [ $GITHUB_BRANCH == "develop_doc" ]; then
+PPO_BRANCH=develop
+else
 PPO_BRANCH=master
+fi
 
 echo "Pull PaddlePaddle.org app"
 curl -LOk https://github.com/PaddlePaddle/PaddlePaddle.org/archive/$PPO_BRANCH.zip
