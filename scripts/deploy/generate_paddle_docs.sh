@@ -22,3 +22,6 @@ ls -l $PYTHONPATH/paddle
 ls -l /paddle
 ls -l /paddle/build
 ls -l /paddle/build/python
+ls -l $TRAVIS_BUILD_DIR/build/
+
+echo "------------"
