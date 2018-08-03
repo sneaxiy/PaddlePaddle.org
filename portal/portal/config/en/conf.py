@@ -13,6 +13,12 @@
 # serve to show the default.
 import sys
 import os, subprocess
+
+print "========================="
+print os.environ
+print "========================="
+
+
 # sys.path.insert(0, os.path.abspath('@PADDLE_BINARY_DIR@/python'))
 import shlex
 from recommonmark import parser, transform
