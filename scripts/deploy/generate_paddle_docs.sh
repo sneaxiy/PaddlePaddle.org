@@ -34,8 +34,11 @@ ls /paddle/build
 fi
 
 if [ -d "$TRAVIS_BUILD_DIR/build" ]; then
-echo "TRAVIS_BUILD_DIR/build: $TRAVIS_BUILD_DIR/build"
-ls $TRAVIS_BUILD_DIR/build
+echo "TRAVIS_BUILD_DIR/build/python: $TRAVIS_BUILD_DIR/build/python"
+ls $TRAVIS_BUILD_DIR/build/python
 fi
+
+echo "possible module?---"
+ls $TRAVIS_BUILD_DIR/build/python/paddle
 
 echo "------------ done testing ----------------"
